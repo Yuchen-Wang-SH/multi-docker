@@ -1,0 +1,23 @@
+language: generic
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t wyc2313/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true wyc2313/react-test npm test
+
+after_success:
+  - docker build -t wyc2313/multi-client ./client
+  - docker build -t wyc2313/multi-nginx ./nginx
+  - docker build -t wyc2313/multi-server ./server
+  - docker build -t wyc2313/multi-worker ./worker
+  # Log in
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take images and push
+  - docker push wyc2313/multi-client
+  - docker push wyc2313/multi-nginx
+  - docker push wyc2313/multi-server
+  - docker push wyc2313/multi-worker
